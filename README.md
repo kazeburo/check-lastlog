@@ -22,7 +22,7 @@ Help Options:
 ## sample
 
 ```
-$ ./check-lastlog --white-user-names boofy 
+$ ./check-lastlog --white-user-names boofy,pages
 2020/05/20 15:02:06 Found users who have not logged in recently: testuser(129 days), sampleuser(106 days)
 ```
 
