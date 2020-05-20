@@ -21,7 +21,7 @@ var Version string
 type cmdOpts struct {
 	Before         int64  `long:"before" default:"85" description:"Check for users whose login is older than DAYS"`
 	MinUID         int    `long:"min-uid" default:"500" description:"min uid to check lastlog"`
-	MaxUID         int    `long:"max-ui" default:"60000" description:"max uid to check lastlog"`
+	MaxUID         int    `long:"max-uid" default:"60000" description:"max uid to check lastlog"`
 	WhiteUserNames string `long:"white-user-names" default:"" description:"comma separeted user names that white"`
 }
 

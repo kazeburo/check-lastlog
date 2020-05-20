@@ -12,7 +12,7 @@ Usage:
 Application Options:
       --before=           Check for users whose login is older than DAYS (default: 85)
       --min-uid=          min uid to check lastlog (default: 500)
-      --max-ui=           max uid to check lastlog (default: 60000)
+      --max-uid=           max uid to check lastlog (default: 60000)
       --white-user-names= comma separeted user names that white
 
 Help Options:
