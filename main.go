@@ -183,9 +183,9 @@ func main() {
 		for i, u := range noLoginUsers {
 			msgs[i] = fmt.Sprintf("%s(%s)", u.UserName, u.LastLoginDays())
 		}
-		log.Printf("Found users who have not logged in recently: %s", strings.Join(msgs, ", "))
+		fmt.Printf("Found users who have not logged in recently: %s\n", strings.Join(msgs, ", "))
 		os.Exit(2)
 	}
-	log.Printf("No users found who have not logged in recently")
+	fmt.Printf("No users found who have not logged in recentl\n")
 	os.Exit(0)
 }
