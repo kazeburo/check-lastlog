@@ -13,7 +13,8 @@ import (
 	"github.com/jessevdk/go-flags"
 )
 
-var rsize = 292 // time:int32 + line:[32]byte + host:[256]byte
+// lastlog.h struct lastlog
+var llsize = 292 // time:time_t + ll_line:char[32] + ll_host:char[256]
 
 // Version by Makefile
 var Version string
@@ -70,7 +71,7 @@ func readLastLog() (map[int]int64, error) {
 		return lastlog, err
 	}
 	defer f.Close()
-	buf := make([]byte, rsize)
+	buf := make([]byte, llsize)
 	pos := 0
 	for {
 		n, err := f.Read(buf)
