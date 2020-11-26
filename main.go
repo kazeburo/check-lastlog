@@ -1,5 +1,8 @@
 package main
 
+// #include <time.h>
+import "C"
+
 import (
 	"bufio"
 	"encoding/binary"
@@ -15,7 +18,8 @@ import (
 )
 
 // lastlog.h struct lastlog
-var llsize = 292 // time:time_t + ll_line:char[32] + ll_host:char[256]
+var ttsize = C.sizeof_time_t
+var llsize = ttsize + 32 + 256 // time:time_t + ll_line:char[32] + ll_host:char[256]
 
 // version by Makefile
 var version string
@@ -203,6 +207,6 @@ func main() {
 		fmt.Printf("Found users who have not logged in recently: %s\n", strings.Join(msgs, ", "))
 		os.Exit(2)
 	}
-	fmt.Printf("No users found who have not logged in recentl\n")
+	fmt.Printf("No users were found who have not logged in recently\n")
 	os.Exit(0)
 }
