@@ -16,7 +16,7 @@ jobs:
         uses: crazy-max/ghaction-xgo@v1
         with:
           xgo_version: latest
-          go_version: 1.15
+          go_version: 1.15.x
           dest: build
           prefix: check-lastlog
           targets: linux/amd64,linux/arm64
