@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -16,14 +17,15 @@ import (
 // lastlog.h struct lastlog
 var llsize = 292 // time:time_t + ll_line:char[32] + ll_host:char[256]
 
-// Version by Makefile
-var Version string
+// version by Makefile
+var version string
 
 type cmdOpts struct {
 	Before         int64  `long:"before" default:"85" description:"Check for users whose login is older than DAYS"`
 	MinUID         int    `long:"min-uid" default:"500" description:"min uid to check lastlog"`
 	MaxUID         int    `long:"max-uid" default:"60000" description:"max uid to check lastlog"`
 	WhiteUserNames string `long:"white-user-names" default:"" description:"comma separeted user names that white"`
+	Version        bool   `short:"v" long:"version" description:"Show version"`
 }
 
 // User :
@@ -166,11 +168,26 @@ func checkLastLog(opts cmdOpts) ([]User, error) {
 	return noLoginUsers, nil
 }
 
+func printVersion() {
+	fmt.Printf(`%s %s
+Compiler: %s %s
+`,
+		os.Args[0],
+		version,
+		runtime.Compiler,
+		runtime.Version())
+}
+
 func main() {
 	opts := cmdOpts{}
-	psr := flags.NewParser(&opts, flags.Default)
+	psr := flags.NewParser(&opts, flags.HelpFlag|flags.PassDoubleDash)
 	_, err := psr.Parse()
+	if opts.Version {
+		printVersion()
+		os.Exit(0)
+	}
 	if err != nil {
+		fmt.Fprintf(os.Stderr, "%v\n", err)
 		os.Exit(1)
 	}
 	noLoginUsers, err := checkLastLog(opts)
