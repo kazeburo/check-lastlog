@@ -6,6 +6,8 @@ on:
 jobs:
   goreleaser:
     runs-on: ubuntu-latest
+    env:
+      BIN_NAME: check-lastlog
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -13,7 +15,8 @@ jobs:
           fetch-depth: 0
 
       - name: Set tag to environment variable
-        run: echo ::set-env name=VERSION::${GITHUB_REF#refs/*/}
+        id: set-tag
+        run: echo ::set-output name=version::${GITHUB_REF#refs/*/}
 
       - name: Build with xgo
         uses: crazy-max/ghaction-xgo@v1
@@ -21,11 +24,11 @@ jobs:
           xgo_version: latest
           go_version: 1.15.x
           dest: build
-          prefix: check-lastlog
+          prefix: ${{ env.BIN_NAME }}
           targets: linux/amd64,linux/arm64
           v: true
           x: false
-          ldflags: -s -w -X main.version=${{ env.VERSION }}
+          ldflags: -s -w -X main.version=${{ steps.set-tag.outputs.version }}
 
       - name: Check build dir
         run: ls -lR build
@@ -33,7 +36,7 @@ jobs:
       - name: Zip binaries
         run: |
           cd build
-          for file in ./* ; do mkdir $(echo ${file}|awk -F- '{print "check-lastlog_"$(NF-1)"_"$(NF)}') && cp ${file} $(echo ${file}|awk -F- '{print "check-lastlog_"$(NF-1)"_"$(NF)}')/check-lastlog && zip $(echo ${file}|awk -F- '{print "check-lastlog_"$(NF-1)"_"$(NF)}').zip $(echo ${file}|awk -F- '{print "check-lastlog_"$(NF-1)"_"$(NF)}')/check-lastlog ../README.md ../LICENSE; done
+          for file in ./* ; do mkdir $(echo ${file}|awk -F- '{print "${{ env.BIN_NAME }}_"$(NF-1)"_"$(NF)}') && cp ${file} $(echo ${file}|awk -F- '{print "${{ env.BIN_NAME }}_"$(NF-1)"_"$(NF)}')/${{ env.BIN_NAME }} && zip $(echo ${file}|awk -F- '{print "${{ env.BIN_NAME }}_"$(NF-1)"_"$(NF)}').zip $(echo ${file}|awk -F- '{print "${{ env.BIN_NAME }}_"$(NF-1)"_"$(NF)}')/${{ env.BIN_NAME }} ../README.md ../LICENSE; done
           ls -lR ./
 
       - name: Run GoReleaser
