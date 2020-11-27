@@ -1,14 +1,10 @@
+# Use for generating CHANGELOG
 builds:
   - binary: check-lastlog
-    goos:
-      - linux
-    goarch:
-      - amd64
-      - arm64
-archives:
-  - format: zip
-    name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}"
+    skip: true
 release:
   github:
     owner: kazeburo
-    name: check-lastlog
+    name: mackerel-plugin-axslog
+    extra_files:
+      - glob: "build/*.zip"
