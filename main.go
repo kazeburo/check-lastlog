@@ -1,6 +1,7 @@
 package main
 
 // #include <time.h>
+// #include <lastlog.h>
 import "C"
 
 import (
@@ -13,13 +14,16 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unsafe"
 
 	"github.com/jessevdk/go-flags"
 )
 
 // lastlog.h struct lastlog
+type lastLog C.struct_lastlog
+
+var llsize = unsafe.Sizeof(lastLog{})
 var ttsize = C.sizeof_time_t
-var llsize = ttsize + 32 + 256 // time:time_t + ll_line:char[32] + ll_host:char[256]
 
 // version by Makefile
 var version string
@@ -87,7 +91,7 @@ func readLastLog() (map[int]int64, error) {
 		if err != nil {
 			return lastlog, err
 		}
-		unixTime := int64(binary.LittleEndian.Uint32(buf[:4]))
+		unixTime := int64(binary.LittleEndian.Uint32(buf[:ttsize]))
 		lastlog[pos] = unixTime
 		pos++
 	}
@@ -175,11 +179,13 @@ func checkLastLog(opts cmdOpts) ([]User, error) {
 func printVersion() {
 	fmt.Printf(`%s %s
 Compiler: %s %s
+sizeof(lastlog): %d
 `,
 		os.Args[0],
 		version,
 		runtime.Compiler,
-		runtime.Version())
+		runtime.Version(),
+		llsize)
 }
 
 func main() {
