@@ -6,5 +6,5 @@ release:
   github:
     owner: kazeburo
     name: mackerel-plugin-axslog
-    extra_files:
-      - glob: "build/*.zip"
+  extra_files:
+    - glob: "build/*.zip"
