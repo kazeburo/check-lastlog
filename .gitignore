@@ -27,3 +27,5 @@ check-lastlog
 vendor/
 dist/
 *~
+
+build/

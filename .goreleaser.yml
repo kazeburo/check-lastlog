@@ -5,6 +5,7 @@ builds:
 release:
   github:
     owner: kazeburo
-    name: mackerel-plugin-axslog
+    name: check-lastlog
   extra_files:
     - glob: "build/*.zip"
+    - glob: "build/*_checksums.txt"
