@@ -14,15 +14,12 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"unsafe"
 
 	"github.com/jessevdk/go-flags"
 )
 
 // lastlog.h struct lastlog
-type lastLog C.struct_lastlog
-
-var llsize = unsafe.Sizeof(lastLog{})
+var llsize = C.sizeof_struct_lastlog
 var ttsize = C.sizeof_time_t
 
 // version by Makefile
