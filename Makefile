@@ -1,4 +1,4 @@
-VERSION=0.0.8
+VERSION=0.0.9
 LDFLAGS=-ldflags "-X main.version=${VERSION}"
 
 all: check-lastlog
