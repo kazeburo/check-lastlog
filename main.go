@@ -8,7 +8,6 @@ import (
 	"bufio"
 	"encoding/binary"
 	"fmt"
-	"log"
 	"os"
 	"runtime"
 	"strconv"
@@ -26,7 +25,9 @@ var ttsize = C.sizeof_time_t
 var version string
 
 type cmdOpts struct {
-	Before         int64  `long:"before" default:"85" description:"Check for users whose login is older than DAYS"`
+	Before         int64  `long:"before" description:"[Deprecated] Check for users whose login is older than DAYS"`
+	Warn           int64  `short:"w" long:"warning" default:"60" description:"warning if users whose login is older than DAYS"`
+	Crit           int64  `short:"c" long:"critical" default:"85" description:"critical if users whose login is older than DAYS"`
 	MinUID         int    `long:"min-uid" default:"500" description:"min uid to check lastlog"`
 	MaxUID         int    `long:"max-uid" default:"60000" description:"max uid to check lastlog"`
 	WhiteUserNames string `long:"white-user-names" default:"" description:"comma separeted user names that white"`
@@ -136,8 +137,7 @@ func readPasswd() ([]User, error) {
 	return users, nil
 }
 
-func checkLastLog(opts cmdOpts) ([]User, error) {
-	noLoginUsers := make([]User, 0)
+func checkLastLog(opts cmdOpts) (int, string) {
 	whileUserNames := make(map[string]struct{})
 	if opts.WhiteUserNames != "" {
 		names := strings.Split(opts.WhiteUserNames, ",")
@@ -145,11 +145,23 @@ func checkLastLog(opts cmdOpts) ([]User, error) {
 			whileUserNames[n] = struct{}{}
 		}
 	}
-	timeBefore := time.Now().Unix() - opts.Before*86400
+
+	now := time.Now().Unix()
+	warn := now - opts.Warn*86400
+	crit := now - opts.Crit*86400
+
+	// for compatibility
+	if opts.Before != 0 {
+		warn = now - opts.Before*86400
+		crit = now - opts.Before*86400
+	}
+
+	chkSt := 0
+	msgs := make([]string, 0)
 
 	users, err := readPasswd()
 	if err != nil {
-		return noLoginUsers, err
+		return -1, fmt.Sprintf("UNKNOWN: %v", err)
 	}
 	for _, u := range users {
 		if u.UID <= opts.MinUID {
@@ -164,13 +176,26 @@ func checkLastLog(opts cmdOpts) ([]User, error) {
 		if u.NoLogin() {
 			continue
 		}
-		if u.LastLog >= timeBefore {
-			continue
+
+		if u.LastLog < crit {
+			chkSt |= 2
+			msgs = append(msgs, fmt.Sprintf("%s(%s)", u.UserName, u.LastLoginDays()))
+		} else if u.LastLog < warn {
+			chkSt |= 1
+			msgs = append(msgs, fmt.Sprintf("%s(%s)", u.UserName, u.LastLoginDays()))
 		}
-		noLoginUsers = append(noLoginUsers, u)
 	}
 
-	return noLoginUsers, nil
+	if (chkSt & 2) == 2 {
+		// crit
+		return 2, fmt.Sprintf("CRITICAL: Found users who have not logged in recently: %s", strings.Join(msgs, ", "))
+	} else if (chkSt & 1) == 1 {
+		// warn
+		return 1, fmt.Sprintf("WARNING: Found users who have not logged in recently: %s", strings.Join(msgs, ", "))
+	} else {
+		// ok
+		return 0, "OK: No users were found who have not logged in recently"
+	}
 }
 
 func printVersion() {
@@ -197,19 +222,8 @@ func main() {
 		fmt.Fprintf(os.Stderr, "%v\n", err)
 		os.Exit(1)
 	}
-	noLoginUsers, err := checkLastLog(opts)
-	if err != nil {
-		log.Printf("%v", err)
-		os.Exit(2)
-	}
-	if len(noLoginUsers) > 0 {
-		msgs := make([]string, len(noLoginUsers))
-		for i, u := range noLoginUsers {
-			msgs[i] = fmt.Sprintf("%s(%s)", u.UserName, u.LastLoginDays())
-		}
-		fmt.Printf("Found users who have not logged in recently: %s\n", strings.Join(msgs, ", "))
-		os.Exit(2)
-	}
-	fmt.Printf("No users were found who have not logged in recently\n")
-	os.Exit(0)
+
+	chkSt, msg := checkLastLog(opts)
+	fmt.Println(msg)
+	os.Exit(chkSt)
 }
